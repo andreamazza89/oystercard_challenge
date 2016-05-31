@@ -5,7 +5,7 @@ class OysterCard
   MIN_CHARGE = 1 # => pounds
 
 
-  attr_reader :balance, :from
+  attr_reader :balance, :from, :journey_log, :to
 
 
   def initialize()
@@ -27,9 +27,10 @@ class OysterCard
     @from = station
   end
 
-  def touch_out
+  def touch_out(station)
     deduct(MIN_CHARGE)
     @from = nil
+    @to = station
   end
 
   private

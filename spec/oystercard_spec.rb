@@ -3,6 +3,7 @@ describe OysterCard do
   let(:min_balance) { OysterCard::MIN_BALANCE }
   let(:min_charge) { OysterCard::MIN_CHARGE }
   let(:origin_station) { double(:station) }
+  let(:arrival_station) { double(:station) }
 
 
   context 'At initialization' do
@@ -66,14 +67,21 @@ describe OysterCard do
       it "changes journey status to false" do
         oyster_card.top_up(min_balance)
         oyster_card.touch_in(origin_station)
-        oyster_card.touch_out
+        oyster_card.touch_out(arrival_station)
         expect(oyster_card).not_to be_in_journey
       end
 
       it 'charges the correct amount' do
         oyster_card.top_up(min_charge)
         oyster_card.touch_in(origin_station)
-        expect{oyster_card.touch_out}.to change{ oyster_card.balance }.by(-min_charge)
+        expect{oyster_card.touch_out(arrival_station)}.to change{ oyster_card.balance }.by(-min_charge)
+      end
+
+      it 'updates destination' do
+        oyster_card.top_up(min_charge)
+        oyster_card.touch_in(origin_station)
+        oyster_card.touch_out(arrival_station)
+        expect(oyster_card.to).to eq arrival_station
       end
     end
   end
@@ -92,11 +100,15 @@ describe OysterCard do
       it "returns nil" do
         oyster_card.top_up(min_charge)
         oyster_card.touch_in(origin_station)
-        oyster_card.touch_out
+        oyster_card.touch_out(arrival_station)
         expect(oyster_card.from).to eq nil
       end
     end
   end
 
-
+  describe 'Logs' do
+    describe '#journey_log' do
+      it { is_expected.to respond_to(:journey_log)}
+    end
+  end
 end
