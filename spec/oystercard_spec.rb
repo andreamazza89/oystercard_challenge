@@ -4,6 +4,8 @@ describe Oystercard do
   subject(:oystercard) {described_class.new}
   let(:top_up_amount) {Oystercard::MIN_FARE + 1}
   let(:station) {double(:station)}
+  let(:exit_station) {double(:station)}
+ 
   describe '#balance' do
     it 'allows user to see starting balance of zero' do
       expect(oystercard.balance).to eq 0
@@ -33,7 +35,7 @@ describe Oystercard do
 
       oystercard.top_up(top_up_amount)
       oystercard.touch_in(station)
-      oystercard.touch_out
+      oystercard.touch_out(exit_station)
       expect(oystercard.in_journey?).to eq false
     end
 
@@ -56,16 +58,24 @@ describe Oystercard do
   end
 
   describe '#touch_out' do
+    
+    it 'stores exit station' do
+      oystercard.top_up(top_up_amount)
+      oystercard.touch_in(station)
+      oystercard.touch_out(exit_station)
+      expect(oystercard.exit_station).to eq exit_station
+    end
+
     it 'reduces the balance by minimum fare' do
       oystercard.top_up(top_up_amount)
       oystercard.touch_in(station)
-      expect{oystercard.touch_out}.to change{oystercard.balance}.by(-Oystercard::MIN_FARE)
+      expect{oystercard.touch_out(exit_station)}.to change{oystercard.balance}.by(-Oystercard::MIN_FARE)
     end
 
     it 'forgets entry station on touch out' do
       oystercard.top_up(top_up_amount)
       oystercard.touch_in(station)
-      oystercard.touch_out
+      oystercard.touch_out(exit_station)
       expect(oystercard.entry_station).to eq nil
     end
   end
