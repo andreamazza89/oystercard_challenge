@@ -4,6 +4,7 @@ describe OysterCard do
   let(:min_charge) { OysterCard::MIN_CHARGE }
   let(:origin_station) { double(:station) }
   let(:arrival_station) { double(:station) }
+  let(:journey){ {origin_station: origin_station, arrival_station: arrival_station} }
 
 
   context 'At initialization' do
@@ -13,6 +14,10 @@ describe OysterCard do
 
     it "#in_journey? returns false" do
       expect(oyster_card).not_to be_in_journey
+    end
+
+    it 'has an empty list of journeys by default' do
+      expect(oyster_card.journey_log).to be_empty 
     end
 
   end
@@ -82,6 +87,13 @@ describe OysterCard do
         oyster_card.touch_in(origin_station)
         oyster_card.touch_out(arrival_station)
         expect(oyster_card.to).to eq arrival_station
+      end
+
+      it 'writes from/to into journey log' do
+        oyster_card.top_up(min_charge)
+        oyster_card.touch_in(origin_station)
+        oyster_card.touch_out(arrival_station)
+        expect(oyster_card.journey_log).to include journey
       end
     end
   end

@@ -11,6 +11,7 @@ class OysterCard
   def initialize()
     @balance = 0 # => pounds
     @from = nil
+    @journey_log = {} 
   end
 
   def top_up(value)
@@ -27,10 +28,12 @@ class OysterCard
     @from = station
   end
 
-  def touch_out(station)
+  def touch_out(destination)
     deduct(MIN_CHARGE)
+    @journey_log[:origin_station] = @from
+    @journey_log[:arrival_station] = destination
     @from = nil
-    @to = station
+    @to = destination
   end
 
   private
