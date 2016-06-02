@@ -1,126 +1,96 @@
-describe OysterCard do
-  subject(:oyster_card) { described_class.new }
-  let(:min_balance) { OysterCard::MIN_BALANCE }
-  let(:min_charge) { OysterCard::MIN_CHARGE }
-  let(:origin_station) { double(:station) }
-  let(:arrival_station) { double(:station) }
-  let(:journey){ {origin_station: origin_station, arrival_station: arrival_station} }
+require 'oystercard'
 
-
-  context 'At initialization' do
-    it 'Has with a balance of zero' do
-      expect(oyster_card.balance).to eq 0
-    end
-
-    it "#in_journey? returns false" do
-      expect(oyster_card).not_to be_in_journey
-    end
-
-    it 'has an empty list of journeys by default' do
-      expect(oyster_card.journey_log).to be_empty 
-    end
-
+describe Oystercard do
+  subject(:oystercard) {described_class.new}
+  let(:top_up_amount) {Oystercard::MIN_FARE + 1}
+  let(:entry_station) {double(:station)}
+  let(:exit_station) {double(:station)}
+  let(:max_balance) {Oystercard::MAX_BALANCE}
+  let(:oyster_with_money) do
+    oystercard.top_up(top_up_amount)
+    oystercard.touch_in(entry_station)
   end
 
-  context 'In any context' do
 
-    it { is_expected.to respond_to(:balance) }
-
-    it { is_expected.to respond_to(:top_up).with(1).argument }
+  describe '#balance' do
+    it 'allows user to see starting balance of zero' do
+      expect(oystercard.balance).to eq 0
+    end
   end
 
   describe '#top_up' do
+    it 'tops up oystercard' do
+  		expect{oystercard.top_up(top_up_amount)}.to change{oystercard.balance}.by top_up_amount
+  	end
 
-    it 'adds value to balance' do
-      expect{ oyster_card.top_up(1) }.to change{ oyster_card.balance }.by 1
+    it 'raises an error if balance exceeds max limit' do
+      oystercard.top_up(max_balance)
+      message = "Balance can not exceed £#{max_balance}"
+      expect{oystercard.top_up(Oystercard::MIN_BALANCE)}.to raise_error message
+    end
+  end
+
+  describe '#in_journey?' do
+    it 'reports when oystercard is in use' do
+      oyster_with_money
+      expect(oystercard.in_journey?).to eq true
     end
 
-    it 'raises error if balance reaches limit' do
-      max_balance = OysterCard::MAX_BALANCE
-      oyster_card.top_up(max_balance)
-      expect{ oyster_card.top_up(1) }.to raise_error("Balance limit of #{max_balance} reached")
+    it 'reports when oystercard is not in use' do
+      oyster_with_money
+      oystercard.touch_out(exit_station)
+      expect(oystercard.in_journey?).to eq false
+    end
+
+    it 'reports initialized oystercard not in use' do
+      expect(oystercard.in_journey?).to eq false
     end
   end
 
   describe '#touch_in' do
-
-    context "When oyster_card is not in journey" do
-      it "changes journey status to true" do
-        oyster_card.top_up(min_balance)
-        oyster_card.touch_in(origin_station)
-        expect(oyster_card).to be_in_journey
-      end
-
-
+    it 'raises an error if the balance is insufficient' do
+      message = "Insufficient balance"
+      expect{ oystercard.touch_in(entry_station)}.to raise_error message
     end
 
-    context "When balance is insufficient" do
-      it "raises an error" do
-        expect{ oyster_card.touch_in(origin_station) }.to raise_error('Balance insufficient')
-      end
+    it 'remembers entry station' do
+      oyster_with_money
+      expect(oystercard.entry_station).to eq entry_station
     end
   end
-    # context "When oyster_card is not in journey" do
-    #   it "raises an error"do
-    #
-    #   end
-    # end
 
   describe '#touch_out' do
-    context "When oyster_card is in journey" do
 
-      it "changes journey status to false" do
-        oyster_card.top_up(min_balance)
-        oyster_card.touch_in(origin_station)
-        oyster_card.touch_out(arrival_station)
-        expect(oyster_card).not_to be_in_journey
-      end
+    it 'stores exit station' do
+      oyster_with_money
+      oystercard.touch_out(exit_station)
+      expect(oystercard.exit_station).to eq exit_station
+    end
 
-      it 'charges the correct amount' do
-        oyster_card.top_up(min_charge)
-        oyster_card.touch_in(origin_station)
-        expect{oyster_card.touch_out(arrival_station)}.to change{ oyster_card.balance }.by(-min_charge)
-      end
+    it 'reduces the balance by minimum fare' do
+      oyster_with_money
+      expect{oystercard.touch_out(exit_station)}.to change{oystercard.balance}.by(-Oystercard::MIN_FARE)
+    end
 
-      it 'updates destination' do
-        oyster_card.top_up(min_charge)
-        oyster_card.touch_in(origin_station)
-        oyster_card.touch_out(arrival_station)
-        expect(oyster_card.to).to eq arrival_station
-      end
-
-      it 'writes from/to into journey log' do
-        oyster_card.top_up(min_charge)
-        oyster_card.touch_in(origin_station)
-        oyster_card.touch_out(arrival_station)
-        expect(oyster_card.journey_log).to include journey
-      end
+    it 'forgets entry station on touch out' do
+      oyster_with_money
+      oystercard.touch_out(exit_station)
+      expect(oystercard.entry_station).to eq nil
     end
   end
-
-  describe '#from' do
-    context "When oyster_card is in journey" do
-
-      it "returns origin station" do
-        oyster_card.top_up(min_charge)
-        oyster_card.touch_in(origin_station)
-        expect(oyster_card.from).to eq origin_station
+  describe "#journeys" do
+    context "when first journey ends" do
+      it "returns journey made" do
+        journeys = [[entry_station,exit_station]]
+        oyster_with_money
+        oystercard.touch_out(exit_station)
+        expect(oystercard.journeys).to eq journeys
       end
     end
-    context "When oyster_card is touched out" do
-
-      it "returns nil" do
-        oyster_card.top_up(min_charge)
-        oyster_card.touch_in(origin_station)
-        oyster_card.touch_out(arrival_station)
-        expect(oyster_card.from).to eq nil
+    context "when initialised" do
+      it "is empty" do
+        expect(oystercard.journeys).to be_empty
       end
-    end
-  end
-
-  describe 'Logs' do
-    describe '#journey_log' do
-      it { is_expected.to respond_to(:journey_log)}
     end
   end
 end
