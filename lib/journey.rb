@@ -1,26 +1,15 @@
 class Journey
+  
+  def complete?
+    @in && @out 
+  end
 
-  attr_reader :origin, :destination
-
-  def initialize
-    @origin = nil
-    @destination = nil
+  def start(station)
+    @in = station
   end 
 
-  def start(entry_station)
-    @origin = entry_station
-  end
+  def finish(station)
+    @out = station
+  end 
 
-
-  def finish(exit_station)
-    @destination = exit_station
-  end
-
-  def fare
-    if [@origin, @destination].include? nil
-          -6
-    else
-      2
-    end
-  end
 end

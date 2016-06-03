@@ -1,43 +1,50 @@
+#Oystercard file 
+require_relative './tfl'
+require_relative './journey_log'
+require_relative './journey'
+
+
 class Oystercard
 
-  attr_reader :balance, :entry_station, :exit_station, :journeys
+  attr_reader :balance, :entry_station, :exit_station, :journey_history
+  MAXIMUM_BALANCE = 90
+  MINIMUM_FARE = 1
 
-  MAX_BALANCE = 90
-  MIN_BALANCE = 1
-  MIN_FARE = 2
-
-  def initialize(balance = 0)
-    @balance = balance
-    @entry_station = nil
-    @journeys = []
-  end
+  def initialize
+    @balance = 0
+    @user_travelling = false
+    @journey_history = {}
+    @journey_log = JourneyLog.new
+  end	
 
   def top_up(amount)
-    fail "Balance can not exceed £#{MAX_BALANCE}" if balance + amount > MAX_BALANCE
+  	fail "ERROR: Balance limit is £ #{MAXIMUM_BALANCE}" if (balance + amount) > MAXIMUM_BALANCE
   	@balance += amount
-  end
-
-  def deduct(amount)
-  	@balance -= amount
-  end
-
-  def touch_in(station)
-    raise "Insufficient balance" if balance < MIN_BALANCE
-    @entry_station = station
-  end
+  end   
 
   def in_journey?
-    !@entry_station.nil?
+  	!!@entry_station
   end
 
-  def touch_out(exit_station)
-    deduct(MIN_FARE)
-    journeys << [entry_station, exit_station]
+  def touch_in(station_in)
+  	fail "ERROR: Insufficient funds" if @balance < MINIMUM_FARE
+	   @entry_station = station_in   	
+    @user_travelling = true
+  end
+
+  def touch_out(station_out)
+    @user_travelling = false
+    @balance -= Tfl.fare(Journey.new)
+    journey_history[@entry_station] = station_out
     @entry_station = nil
-    @exit_station = exit_station
-
+    @exit_station = station_out
   end
 
-    private :deduct
+  private
+
+  def deduct(fare)
+  	@balance -= fare
+  end
+
 
 end

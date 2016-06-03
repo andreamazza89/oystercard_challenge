@@ -1,7 +1,10 @@
+
 source "https://rubygems.org"
 
-ruby '2.3.1'
+ruby '2.3.0'
 
 group :development, :test do
-	gem "rspec"
+  gem "rspec"
 end
+
+# gem "rails"

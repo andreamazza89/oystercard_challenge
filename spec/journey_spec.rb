@@ -1,34 +1,19 @@
 describe Journey do
-  let(:entry_station) { double :station}
-  let(:exit_station) {double(:station)}
+  
+  it '#complete? returns false when journey was not started then ended' do
+    subject.finish(double :station)  
+    expect(subject.complete?).to be_falsey
+  end 
 
-  describe ':new' do 
-    it 'contains the start of the journey' do
-      subject.start(entry_station)
-      expect(subject.origin).to eq entry_station 
-    end 
+  it '#complete? returns false when journey was started but not ended' do
+    subject.start(double :station)  
+    expect(subject.complete?).to be_falsey
+  end 
 
-    it 'contains the end of the journey' do
-      subject.finish(exit_station)
-      expect(subject.destination).to eq exit_station
-    end 
-  end
+  it '#complete? returns true when journey was started and ended' do
+    subject.start(double :station)  
+    subject.finish(double :station)  
+    expect(subject.complete?).to be_truthy
+  end 
 
-  describe '#fare' do
-    it 'returns penalty fare when origin is nil' do
-      subject.finish(exit_station)
-      expect(subject.fare).to eq -6
-    end 
-
-    it 'returns penalty fare when destination is nil' do
-      subject.start(entry_station)
-      expect(subject.fare).to eq -6
-    end 
-
-    it 'returns the cost of the trip fare when origin/destination are not nil' do
-      subject.start(entry_station)
-      subject.finish(exit_station)
-      expect(subject.fare).to eq 2 
-    end 
-  end
-end
+end 

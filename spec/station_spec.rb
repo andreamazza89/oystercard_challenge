@@ -1,11 +1,25 @@
-describe Station do
-  let(:station_name) { Station.new('test_station', 2) }
-  
-  it '#name returns the name of the station' do
-    expect(station_name.name).to eq 'test_station'
-  end 
 
-  it '#zone returns the zone of the station' do
-    expect(station_name.zone).to eq 2
-  end 
+require 'station'
+
+
+describe Station do
+
+	subject(:station) {described_class.new(:zone, :name)}
+
+	it "Has an assigned zone" do
+		expect(station.zone).to eq (:zone)
+	end
+
+	it "Has a name" do 
+		expect(station.name).to eq (:name)
+	end
+
 end
+	
+# 	it 'Holds an empty array called zone' do
+# 		expect(subject.zone).to respond_to (:empty?)
+# 	end
+
+# 	it " name" do
+# end
+
